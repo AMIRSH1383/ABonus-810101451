@@ -129,7 +129,6 @@ vector<locations> put_input_to_struct(vector<vector<string>> input_table, vector
 	int string_num = input_table.size();
 	for (int i = 0; i < string_num; i++)
 	{
-		vector<locations> input_vector;
 		input_structs.push_back({i + 1, input_table[i][title_arrangment[LOCATION_NAME_INDEX]], open_times[i], close_times[i], stoi(input_table[i][title_arrangment[RANK_INDEX]])});
 	}
 	return input_structs;
@@ -287,8 +286,7 @@ int find_next_destination_index(int &current_time, vector<int> open_times, vecto
 int check_destination_wellness(vector<locations> input, int current_time, int index)
 {
 	int duration = input[index].closing_time - current_time;
-	int duration_checker = duration > MIN_VISIT_TIME_DURATION;
-	if (duration_checker == 1)
+	if (duration > MIN_VISIT_TIME_DURATION)
 		return duration;
 	else
 		return -1;
@@ -320,18 +318,21 @@ int check_existence(vector<int> location_check, int index)
 	return -1;
 }
 
-void test_destinations(int current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,vector<int> &not_suitables)
+void make_changes(int &current_time,int duration_check,int index, vector<int> &location_check, vector<int> &start, vector<int> &durations)
+{
+		location_check.push_back(index);
+		start.push_back(current_time);
+		durations.push_back(duration_check);
+		current_time = calculate(current_time, duration_check);
+}
+
+void test_destinations(int &current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,vector<int> &not_suitables)
 {
 	int index = find_next_destination_index(current_time, open_times, input, location_check, not_suitables);
 	int existence_checker = check_existence(location_check, index);
 	int duration_check = check_destination_wellness(input, current_time, index);
 	if (existence_checker == FALSE && duration_check != FALSE)
-	{
-		location_check.push_back(index);
-		start.push_back(current_time);
-		durations.push_back(duration_check);
-		current_time = calculate(current_time, duration_check);
-	}
+		make_changes(current_time,duration_check,index,location_check,start,durations);
 	else
 		not_suitables.push_back(index);
 }
