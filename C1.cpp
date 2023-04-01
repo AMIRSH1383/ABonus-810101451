@@ -6,6 +6,15 @@
 
 using namespace std;
 
+#define START_TIME_IN_MINUTES 480
+#define FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE 2
+#define START_TIME_INDEX 1
+#define END_TIME_INDEX 2
+#define MIN_VISIT_TIME_DURATION 15
+#define OPTIMUM_VISIT_TIME_DURATION 60
+#define TRANSPORTATION_DURATION 30
+#define MINUTES_PER_HOURS 60
+
 vector<int> open_times;
 vector<int> close_times;
 
@@ -105,7 +114,7 @@ vector<int> create_opentime_vector(vector<vector<string>> input_table, int opent
 			ss >> temp_clock;
 			temp.push_back(temp_clock);
 		}
-		int close_time = temp[0] * 60 + temp[1];
+		int close_time = temp[0] * OPTIMUM_VISIT_TIME_DURATION + temp[1];
 		temp.clear();
 		open_times.push_back(close_time);
 	}
@@ -127,7 +136,7 @@ vector<int> create_closetime_vector(vector<vector<string>> input_table, int clos
 			ss >> temp_clock;
 			temp.push_back(temp_clock);
 		}
-		int close_time = temp[0] * 60 + temp[1];
+		int close_time = temp[0] * OPTIMUM_VISIT_TIME_DURATION + temp[1];
 		temp.clear();
 		close_times.push_back(close_time);
 	}
@@ -216,15 +225,15 @@ int find_best(vector<int> suitable_indexs, vector<locations> input)
 
 int calculate(int previous_time, int duration)
 {
-	if (duration >= 60)
-		duration = 60;
-	return previous_time + duration + 30;
+	if (duration >= OPTIMUM_VISIT_TIME_DURATION)
+		duration = OPTIMUM_VISIT_TIME_DURATION;
+	return previous_time + duration + TRANSPORTATION_DURATION;
 }
 
 int calculate_endtime(int previous_time, int duration)
 {
-	if (duration >= 60)
-		duration = 60;
+	if (duration >= OPTIMUM_VISIT_TIME_DURATION)
+		duration = OPTIMUM_VISIT_TIME_DURATION;
 	return previous_time + duration;
 }
 
@@ -298,7 +307,7 @@ int find_next_destination_index(int &current_time, vector<int> open_times, vecto
 int check_destination_wellness(vector<locations> input, int current_time, int index)
 {
 	int duration = input[index].closing_time - current_time;
-	int duration_checker = duration > 15;
+	int duration_checker = duration > MIN_VISIT_TIME_DURATION;
 	if (duration_checker == 1)
 		return duration;
 	else
@@ -355,8 +364,8 @@ void find_next_destenation(int current_time, vector<locations> input, vector<int
 }
 string convert_int_to_clock_form(int time)
 {
-	int hour = time / 60;
-	int min = time - (hour * 60);
+	int hour = time / MINUTES_PER_HOURS;
+	int min = time - (hour * MINUTES_PER_HOURS);
 	stringstream ss;
 	ss << hour;
 	string hour_str = ss.str();
@@ -394,7 +403,7 @@ void print_output(vector<vector<string>> temp_vector)
 	for (int i = 0; i < temp_vector.size(); i++)
 	{
 		cout << "Location " << temp_vector[i][0] << endl
-			 << "Visit from " << temp_vector[i][1] << " until " << temp_vector[i][2] << endl
+			 << "Visit from " << temp_vector[i][START_TIME_INDEX] << " until " << temp_vector[i][END_TIME_INDEX] << endl
 			 << "---" << endl;
 	}
 }
@@ -417,20 +426,19 @@ vector<locations> read_from_file(string file_name)
 	vector<string> primitive_get = read_locs_data(file_name);
 	vector<vector<string>> splitted_input = split_input(primitive_get);
 
-	open_times = create_opentime_vector(splitted_input, arrangment[1]);
-	close_times = create_closetime_vector(splitted_input, arrangment[2]);
+	open_times = create_opentime_vector(splitted_input, arrangment[START_TIME_INDEX]);
+	close_times = create_closetime_vector(splitted_input, arrangment[END_TIME_INDEX]);
 	vector<locations> location_data = put_input_to_struct(splitted_input, open_times, close_times, arrangment);
 	return location_data;
 }
 
 int main(int argc, char *argv[])
 {
-
 	vector<int> gone_location;
 	vector<int> start_times;
 	vector<int> durations;
-	vector<locations> location_data = read_from_file(argv[1] + 2);
-	find_next_destenation(480, location_data, gone_location, start_times, durations);
+	vector<locations> location_data = read_from_file(argv[1]+FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE);
+	find_next_destenation(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations);
 	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data, close_times, gone_location, start_times, durations);
 	print_output(ready_to_print);
 }
