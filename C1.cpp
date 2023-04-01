@@ -35,11 +35,11 @@ string get_first_line(string file_name)
 	return temp_str;
 }
 
-vector<string> split_first_line(string firstline)
+vector<string> split_first_line(string first_line)
 {
 	vector<string> titles;
 	string token;
-	stringstream S(firstline);
+	stringstream S(first_line);
 	while (getline(S, token, ','))
 		titles.push_back(token);
 	return titles;
@@ -77,9 +77,9 @@ vector<string> read_locs_data(string file_name)
 	return input_strings;
 }
 
-int location_number;
 vector<vector<string>> split_input(vector<string> input_strings)
 {
+	int location_number;
 	vector<vector<string>> input_table;
 	location_number = input_strings.size();
 	string token;
@@ -98,15 +98,15 @@ vector<vector<string>> split_input(vector<string> input_strings)
 	return input_table;
 }
 
-vector<int> create_opentime_vector(vector<vector<string>> input_table, int opentime_index)
+vector<int> create_time_vector(vector<vector<string>> input_table, int time_index)
 {
-	vector<int> open_times;
+	vector<int> times;
 	string token;
 	vector<int> temp;
 	int location_number = input_table.size();
 	for (int i = 0; i < location_number; i++)
 	{
-		stringstream S(input_table[i][opentime_index]);
+		stringstream S(input_table[i][time_index]);
 		while (getline(S, token, ':'))
 		{
 			stringstream ss(token);
@@ -114,33 +114,11 @@ vector<int> create_opentime_vector(vector<vector<string>> input_table, int opent
 			ss >> temp_clock;
 			temp.push_back(temp_clock);
 		}
-		int close_time = temp[0] * OPTIMUM_VISIT_TIME_DURATION + temp[1];
+		int time = temp[0] * OPTIMUM_VISIT_TIME_DURATION + temp[1];
 		temp.clear();
-		open_times.push_back(close_time);
+		times.push_back(time);
 	}
-	return open_times;
-}
-vector<int> create_closetime_vector(vector<vector<string>> input_table, int closetime_index)
-{
-	vector<int> close_times;
-	string token;
-	vector<int> temp;
-	int location_number = input_table.size();
-	for (int i = 0; i < location_number; i++)
-	{
-		stringstream S(input_table[i][closetime_index]);
-		while (getline(S, token, ':'))
-		{
-			stringstream ss(token);
-			int temp_clock = 0;
-			ss >> temp_clock;
-			temp.push_back(temp_clock);
-		}
-		int close_time = temp[0] * OPTIMUM_VISIT_TIME_DURATION + temp[1];
-		temp.clear();
-		close_times.push_back(close_time);
-	}
-	return close_times;
+	return times;
 }
 
 vector<locations> put_input_to_struct(vector<vector<string>> input_table, vector<int> open_times, vector<int> close_times, vector<int> title_arrangment)
@@ -183,7 +161,7 @@ int find_int(vector<int> vec, int element)
 	}
 	return 0;
 }
-void findsuitableindexs(vector<locations> input, int nearest_time, vector<int> location_check, vector<int> &suitable_indexs, vector<int> unsuitable_indexs)
+void find_suitable_indexs(vector<locations> input, int nearest_time, vector<int> location_check, vector<int> &suitable_indexs, vector<int> unsuitable_indexs)
 {
 	// we find the next suitable indexes and put them in suitable
 	// indexes, since we change the vector we pass it with & (i.e. pass by reference) so the changes will apply to the original
@@ -291,7 +269,7 @@ int find_next_destination_index(int &current_time, vector<int> open_times, vecto
 					late_opentimes.push_back(open_times[i]);
 			}
 			int nearest_time = find_min(late_opentimes);
-			findsuitableindexs(input, nearest_time, location_check, suitable_indexs, unsuitable_indexs);
+			find_suitable_indexs(input, nearest_time, location_check, suitable_indexs, unsuitable_indexs);
 			current_time = nearest_time;
 		}
 		if (suitable_indexs.size() > 0)
@@ -411,23 +389,13 @@ void print_output(vector<vector<string>> temp_vector)
 vector<locations> read_from_file(string file_name)
 {
 	// this function reads input from a file
-
-	ifstream file(file_name);
-	string temp_str;
-	getline(file, temp_str);
-
-	vector<string> splitted_firstline;
-	string token;
-	stringstream S(temp_str);
-	while (getline(S, token, ','))
-		splitted_firstline.push_back(token);
-
-	vector<int> arrangment = arrange(splitted_firstline);
+	string first_line=get_first_line(file_name);
+	vector<string> splitted_first_line=split_first_line(first_line);
+	vector<int> arrangment = arrange(splitted_first_line);
 	vector<string> primitive_get = read_locs_data(file_name);
 	vector<vector<string>> splitted_input = split_input(primitive_get);
-
-	open_times = create_opentime_vector(splitted_input, arrangment[START_TIME_INDEX]);
-	close_times = create_closetime_vector(splitted_input, arrangment[END_TIME_INDEX]);
+	open_times = create_time_vector(splitted_input, arrangment[START_TIME_INDEX]);
+	close_times = create_time_vector(splitted_input, arrangment[END_TIME_INDEX]);
 	vector<locations> location_data = put_input_to_struct(splitted_input, open_times, close_times, arrangment);
 	return location_data;
 }
@@ -437,7 +405,7 @@ int main(int argc, char *argv[])
 	vector<int> gone_location;
 	vector<int> start_times;
 	vector<int> durations;
-	vector<locations> location_data = read_from_file(argv[1]+FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE);
+	vector<locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE);
 	find_next_destenation(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations);
 	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data, close_times, gone_location, start_times, durations);
 	print_output(ready_to_print);
