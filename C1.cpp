@@ -8,12 +8,15 @@ using namespace std;
 
 #define START_TIME_IN_MINUTES 480
 #define FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE 2
+#define LOCATION_NAME_INDEX 0
 #define START_TIME_INDEX 1
 #define END_TIME_INDEX 2
+#define RANK_INDEX 3
 #define MIN_VISIT_TIME_DURATION 15
 #define OPTIMUM_VISIT_TIME_DURATION 60
 #define TRANSPORTATION_DURATION 30
 #define MINUTES_PER_HOURS 60
+#define FALSE -1
 
 vector<int> open_times;
 vector<int> close_times;
@@ -69,11 +72,11 @@ vector<string> read_locs_data(string file_name)
 {
 	vector<string> input_strings;
 	ifstream file(file_name);
-	string temp_str;
-	string temp_str2;
-	getline(file, temp_str2);
-	while (getline(file, temp_str))
-		input_strings.push_back(temp_str);
+	string locations_datas;
+	string first_line;
+	getline(file, first_line);
+	while (getline(file, locations_datas))
+		input_strings.push_back(locations_datas);
 	return input_strings;
 }
 
@@ -81,14 +84,13 @@ vector<vector<string>> split_input(vector<string> input_strings)
 {
 	int location_number;
 	vector<vector<string>> input_table;
-	location_number = input_strings.size();
 	string token;
+	location_number = input_strings.size();
 	vector<string> temp_vec;
 	for (int i = 0; i < location_number; i++)
 	{
-
-		stringstream S(input_strings[i]);
-		while (getline(S, token, ','))
+		stringstream location_data(input_strings[i]);
+		while (getline(location_data, token, ','))
 		{
 			temp_vec.push_back(token);
 		}
@@ -128,7 +130,7 @@ vector<locations> put_input_to_struct(vector<vector<string>> input_table, vector
 	for (int i = 0; i < string_num; i++)
 	{
 		vector<locations> input_vector;
-		input_structs.push_back({i + 1, input_table[i][title_arrangment[0]], open_times[i], close_times[i], stoi(input_table[i][title_arrangment[3]])});
+		input_structs.push_back({i + 1, input_table[i][title_arrangment[LOCATION_NAME_INDEX]], open_times[i], close_times[i], stoi(input_table[i][title_arrangment[RANK_INDEX]])});
 	}
 	return input_structs;
 }
@@ -317,7 +319,24 @@ int check_existence(vector<int> location_check, int index)
 	}
 	return -1;
 }
-void find_next_destenation(int current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations)
+
+void test_destinations(int current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,vector<int> &not_suitables)
+{
+	int index = find_next_destination_index(current_time, open_times, input, location_check, not_suitables);
+	int existence_checker = check_existence(location_check, index);
+	int duration_check = check_destination_wellness(input, current_time, index);
+	if (existence_checker == FALSE && duration_check != FALSE)
+	{
+		location_check.push_back(index);
+		start.push_back(current_time);
+		durations.push_back(duration_check);
+		current_time = calculate(current_time, duration_check);
+	}
+	else
+		not_suitables.push_back(index);
+}
+
+void find_next_destination(int current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations)
 {
 	// TODO: fix this function
 	int size = input.size();
@@ -325,21 +344,11 @@ void find_next_destenation(int current_time, vector<locations> input, vector<int
 	int counter = 0;
 	while (current_time < find_max(close_times) && counter < size)
 	{
-		int index = find_next_destination_index(current_time, open_times, input, location_check, not_suitables);
-		int existence_checker = check_existence(location_check, index);
-		int duration_check = check_destination_wellness(input, current_time, index);
-		if (existence_checker == (-1) && duration_check != (-1))
-		{
-			location_check.push_back(index);
-			start.push_back(current_time);
-			durations.push_back(duration_check);
-			current_time = calculate(current_time, duration_check);
-		}
-		else
-			not_suitables.push_back(index);
+		test_destinations(current_time,input,location_check,start,durations,not_suitables);
 		counter += 1;
 	}
 }
+
 string convert_int_to_clock_form(int time)
 {
 	int hour = time / MINUTES_PER_HOURS;
@@ -406,7 +415,7 @@ int main(int argc, char *argv[])
 	vector<int> start_times;
 	vector<int> durations;
 	vector<locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE);
-	find_next_destenation(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations);
+	find_next_destination(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations);
 	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data, close_times, gone_location, start_times, durations);
 	print_output(ready_to_print);
 }
