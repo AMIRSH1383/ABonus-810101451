@@ -17,6 +17,8 @@ using namespace std;
 #define TRANSPORTATION_DURATION 30
 #define MINUTES_PER_HOURS 60
 #define FALSE -1
+#define HOUR_INDEX 0
+#define MINUTE_INDEX 1
 #define TIME_DELIMETER ':'
 #define ENTRY_DELIMETER ','
 #define PLANS_DELIMETER "---"
@@ -80,22 +82,25 @@ vector<string> read_locs_data(string file_name)
 	return input_strings;
 }
 
+void make_changes_in_splitted_inputs(vector<vector<string>>& input_table,vector<string> input_strings,int index)
+{
+	vector<string> input_lines_data;
+	string token;
+	stringstream location_data(input_strings[index]);
+	while (getline(location_data, token, ENTRY_DELIMETER))
+	{
+		input_lines_data.push_back(token);
+	}
+	input_table.push_back(input_lines_data);
+}
+
 vector<vector<string>> split_input(vector<string> input_strings)
 {
-	int location_number;
 	vector<vector<string>> input_table;
-	string token;
-	location_number = input_strings.size();
-	vector<string> temp_vec;
+	int location_number = input_strings.size();
 	for (int i = 0; i < location_number; i++)
 	{
-		stringstream location_data(input_strings[i]);
-		while (getline(location_data, token, ENTRY_DELIMETER))
-		{
-			temp_vec.push_back(token);
-		}
-		input_table.push_back(temp_vec);
-		temp_vec.clear();
+		make_changes_in_splitted_inputs(input_table,input_strings,i);
 	}
 	return input_table;
 }
@@ -116,7 +121,7 @@ vector<int> create_time_vector(vector<vector<string>> input_table, int time_inde
 			ss >> temp_clock;
 			temp.push_back(temp_clock);
 		}
-		int time = temp[0] * OPTIMUM_VISIT_TIME_DURATION + temp[1];
+		int time = temp[HOUR_INDEX] * OPTIMUM_VISIT_TIME_DURATION + temp[MINUTE_INDEX];
 		temp.clear();
 		times.push_back(time);
 	}
@@ -235,15 +240,20 @@ vector<int> find_open_locs(vector<int> open_times, int current_time, vector<int>
 	return suitable_indexs;
 }
 
+void make_change_found_nearest(vector<int>& late_opentimes,int index,vector<int> opentimes,int current_time)
+{
+	if (opentimes[index] > current_time)
+	{
+		late_opentimes.push_back(opentimes[index]);
+	}
+}
+
 int find_nearest(int current_time, vector<int> opentimes)
 {
 	vector<int> late_opentimes;
 	for (int i = 0; i < opentimes.size(); i++)
 	{
-		if (opentimes[i] > current_time)
-		{
-			late_opentimes.push_back(opentimes[i]);
-		}
+		make_change_found_nearest(late_opentimes,i,opentimes,current_time);
 	}
 	int min = find_min(late_opentimes);
 	return min;
@@ -322,7 +332,7 @@ int check_existence(vector<int> location_check, int index)
 	return -1;
 }
 
-void make_changes(int &current_time, int duration_check, int index, vector<int> &location_check, vector<int> &start, vector<int> &durations)
+void make_changes_for_found_destination(int &current_time, int duration_check, int index, vector<int> &location_check, vector<int> &start, vector<int> &durations)
 {
 	location_check.push_back(index);
 	start.push_back(current_time);
@@ -337,7 +347,7 @@ void test_destinations(int &current_time, vector<Locations> input, vector<int> &
 	int existence_checker = check_existence(location_check, index);
 	int duration_check = check_destination_wellness(input, current_time, index);
 	if (existence_checker == FALSE && duration_check != FALSE)
-		make_changes(current_time, duration_check, index, location_check, start, durations);
+		make_changes_for_found_destination(current_time, duration_check, index, location_check, start, durations);
 	else
 		not_suitables.push_back(index);
 }
