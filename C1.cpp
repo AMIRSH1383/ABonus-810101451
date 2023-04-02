@@ -310,42 +310,56 @@ int find_nearest(int current_time, vector<int> opentimes)
 	return min;
 }
 
+bool is_current_time_and_counter_eligible(int current_time, vector<int> open_times, int counter)
+{
+	int len = open_times.size();
+	if (current_time >= find_min(open_times) && counter < len)
+		return true;
+	else
+		return false;
+}
+
+vector<int> make_change_if_eligible(int current_time, vector<int> open_times, vector<Locations> input, vector<int> location_check,
+									vector<int> unsuitable_indexs, int &counter)
+{
+	counter += 1;
+	return find_open_locs(open_times, current_time, location_check, unsuitable_indexs);
+}
+
+void make_change_if_not_eligible(int &current_time, vector<int> open_times, vector<Locations> input, vector<int> location_check,
+								 vector<int> unsuitable_indexs,vector<int> &suitable_indexs)
+{
+	vector<int> late_opentimes;
+	for (int i = 0; i < open_times.size(); i++)
+	{
+		if (open_times[i] > current_time)
+			late_opentimes.push_back(open_times[i]);
+	}
+	int nearest_time = find_min(late_opentimes);
+	find_suitable_indexs(input, nearest_time, location_check, suitable_indexs, unsuitable_indexs);
+	current_time = nearest_time;
+}
+
 int find_next_destination_index(int &current_time, vector<int> open_times, vector<Locations> input, vector<int> location_check,
 								vector<int> unsuitable_indexs)
 {
-	vector<int> suitable_indexs;
-	int rank, index;
 	int counter = 0;
-	int len = open_times.size();
 	while (true)
 	{
 		// we stay in this while till suitable indexes is empty
-		suitable_indexs.clear();
-		if (current_time >= find_min(open_times) && counter < len)
-		{
-			suitable_indexs = find_open_locs(open_times, current_time, location_check, unsuitable_indexs);
-			counter += 1;
-		}
+		vector<int> suitable_indexs;
+		if (is_current_time_and_counter_eligible(current_time, open_times, counter))
+			suitable_indexs = make_change_if_eligible(current_time, open_times, input, location_check, unsuitable_indexs, counter);
 		else
 		{
-			vector<int> late_opentimes;
-			for (int i = 0; i < open_times.size(); i++)
-			{
-				if (open_times[i] > current_time)
-					late_opentimes.push_back(open_times[i]);
-			}
-			int nearest_time = find_min(late_opentimes);
-			find_suitable_indexs(input, nearest_time, location_check, suitable_indexs, unsuitable_indexs);
-			current_time = nearest_time;
+			make_change_if_not_eligible(current_time, open_times, input, location_check, unsuitable_indexs,suitable_indexs);
 		}
 		if (suitable_indexs.size() > 0)
 		{
-			rank = find_best(suitable_indexs, input);
-			index = match_num_rank(input, rank);
-			break;
+			int rank = find_best(suitable_indexs, input);
+			return match_num_rank(input, rank);
 		}
 	}
-	return index;
 }
 
 int check_destination_wellness(vector<Locations> input, int current_time, int index)
