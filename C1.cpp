@@ -82,7 +82,7 @@ vector<string> read_locs_data(string file_name)
 	return input_strings;
 }
 
-void make_changes_in_splitted_inputs(vector<vector<string>>& input_table,vector<string> input_strings,int index)
+void make_changes_in_splitted_inputs(vector<vector<string>> &input_table, vector<string> input_strings, int index)
 {
 	vector<string> input_lines_data;
 	string token;
@@ -100,7 +100,7 @@ vector<vector<string>> split_input(vector<string> input_strings)
 	int location_number = input_strings.size();
 	for (int i = 0; i < location_number; i++)
 	{
-		make_changes_in_splitted_inputs(input_table,input_strings,i);
+		make_changes_in_splitted_inputs(input_table, input_strings, i);
 	}
 	return input_table;
 }
@@ -129,7 +129,7 @@ vector<int> create_time_vector(vector<vector<string>> input_table, int time_inde
 }
 
 vector<Locations> put_input_to_struct(vector<vector<string>> input_table, vector<int> open_times, vector<int> close_times,
- vector<int> title_arrangment)
+									  vector<int> title_arrangment)
 {
 	vector<Locations> input_structs;
 	int string_num = input_table.size();
@@ -140,6 +140,19 @@ vector<Locations> put_input_to_struct(vector<vector<string>> input_table, vector
 	}
 	return input_structs;
 }
+int find_min(vector<int> vec);
+
+int find_min_tail(vector<int> vec,int length)
+{
+	int tail = vec[length - 1];
+	vec.pop_back();
+	if (tail <= find_min(vec))
+	{
+		return tail;
+	}
+	else
+		return find_min(vec);
+}
 
 int find_min(vector<int> vec)
 {
@@ -147,14 +160,7 @@ int find_min(vector<int> vec)
 	int length = vec.size();
 	if (length > 1)
 	{
-		int tail = vec[length - 1];
-		vec.pop_back();
-		if (tail <= find_min(vec))
-		{
-			return tail;
-		}
-		else
-			return find_min(vec);
+		return find_min_tail(vec,length);
 	}
 	else
 		return vec[0];
@@ -240,7 +246,7 @@ vector<int> find_open_locs(vector<int> open_times, int current_time, vector<int>
 	return suitable_indexs;
 }
 
-void make_change_found_nearest(vector<int>& late_opentimes,int index,vector<int> opentimes,int current_time)
+void make_change_found_nearest(vector<int> &late_opentimes, int index, vector<int> opentimes, int current_time)
 {
 	if (opentimes[index] > current_time)
 	{
@@ -253,7 +259,7 @@ int find_nearest(int current_time, vector<int> opentimes)
 	vector<int> late_opentimes;
 	for (int i = 0; i < opentimes.size(); i++)
 	{
-		make_change_found_nearest(late_opentimes,i,opentimes,current_time);
+		make_change_found_nearest(late_opentimes, i, opentimes, current_time);
 	}
 	int min = find_min(late_opentimes);
 	return min;
@@ -341,7 +347,7 @@ void make_changes_for_found_destination(int &current_time, int duration_check, i
 }
 
 void test_destinations(int &current_time, vector<Locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,
-					   vector<int> &not_suitables,vector<int> open_times)
+					   vector<int> &not_suitables, vector<int> open_times)
 {
 	int index = find_next_destination_index(current_time, open_times, input, location_check, not_suitables);
 	int existence_checker = check_existence(location_check, index);
@@ -353,7 +359,7 @@ void test_destinations(int &current_time, vector<Locations> input, vector<int> &
 }
 
 void find_next_destination(int current_time, vector<Locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,
-vector<int> open_times,vector<int> close_times)
+						   vector<int> open_times, vector<int> close_times)
 {
 	// TODO: fix this function
 	int size = input.size();
@@ -361,12 +367,12 @@ vector<int> open_times,vector<int> close_times)
 	int counter = 0;
 	while (current_time < find_max(close_times) && counter < size)
 	{
-		test_destinations(current_time, input, location_check, start, durations, not_suitables,open_times);
+		test_destinations(current_time, input, location_check, start, durations, not_suitables, open_times);
 		counter += 1;
 	}
 }
 
-string calculate_correct_clock_form(int hour,int minute,string hour_str,string minute_str)
+string calculate_correct_clock_form(int hour, int minute, string hour_str, string minute_str)
 {
 	if (hour < 10 && minute < 10)
 		return "0" + hour_str + TIME_DELIMETER + "0" + minute_str;
@@ -392,11 +398,11 @@ string convert_int_to_clock_form(int time)
 	stringstream string_hours;
 	string_hours << hour;
 	string hour_str = convert_int_to_string_stream(hour);
-	string minute_str=convert_int_to_string_stream(minute);
-	return calculate_correct_clock_form(hour,minute,hour_str,minute_str);
+	string minute_str = convert_int_to_string_stream(minute);
+	return calculate_correct_clock_form(hour, minute, hour_str, minute_str);
 }
 
-void make_changes_for_final_plan(vector<vector<string>>& final_plan,int index,vector<Locations> input,vector<int> start,vector<int> location_check,vector<int> durations)
+void make_changes_for_final_plan(vector<vector<string>> &final_plan, int index, vector<Locations> input, vector<int> start, vector<int> location_check, vector<int> durations)
 {
 	int end = calculate_endtime(start[index], durations[index]);
 	string standard_start = convert_int_to_clock_form(start[index]);
@@ -405,14 +411,14 @@ void make_changes_for_final_plan(vector<vector<string>>& final_plan,int index,ve
 	final_plan.push_back(plan_data);
 }
 
-vector<vector<string>> make_vector_ready_for_print(vector<Locations> input, vector<int> location_check,vector<int> start, vector<int> durations)
+vector<vector<string>> make_vector_ready_for_print(vector<Locations> input, vector<int> location_check, vector<int> start, vector<int> durations)
 {
 	// in this function we are gonna make the
 	// vector ready for print
 	vector<vector<string>> final_plan;
 	for (int i = 0; i < location_check.size(); i++)
 	{
-		make_changes_for_final_plan(final_plan,i,input,start,location_check,durations);
+		make_changes_for_final_plan(final_plan, i, input, start, location_check, durations);
 	}
 	return final_plan;
 }
@@ -427,7 +433,7 @@ void print_output(vector<vector<string>> temp_vector)
 	}
 }
 
-vector<Locations> read_from_file(string file_name,vector<int> &open_times,vector<int> &close_times)
+vector<Locations> read_from_file(string file_name, vector<int> &open_times, vector<int> &close_times)
 {
 	// this function reads input from a file
 	string first_line = get_first_line(file_name);
@@ -448,8 +454,8 @@ int main(int argc, char *argv[])
 	vector<int> durations;
 	vector<int> open_times;
 	vector<int> close_times;
-	vector<Locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE,open_times,close_times);
-	find_next_destination(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations,open_times,close_times);
-	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data,gone_location, start_times, durations);
+	vector<Locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE, open_times, close_times);
+	find_next_destination(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations, open_times, close_times);
+	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data, gone_location, start_times, durations);
 	print_output(ready_to_print);
 }
