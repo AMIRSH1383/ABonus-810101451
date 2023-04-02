@@ -105,7 +105,7 @@ vector<vector<string>> split_input(vector<string> input_strings)
 	return input_table;
 }
 
-int save_time_input(int time_index,int loop_index,vector<vector<string>> input_table)
+int save_time_input(int time_index, int loop_index, vector<vector<string>> input_table)
 {
 	string token;
 	vector<int> temp;
@@ -127,7 +127,7 @@ vector<int> create_time(vector<vector<string>> input_table, int time_index)
 	int location_number = input_table.size();
 	for (int i = 0; i < location_number; i++)
 	{
-		int time=save_time_input(time_index,i,input_table);
+		int time = save_time_input(time_index, i, input_table);
 		times.push_back(time);
 	}
 	return times;
@@ -171,15 +171,41 @@ int find_min(vector<int> vec)
 		return vec[0];
 }
 
-int find_int(vector<int> vec, int element)
+bool did_find_int(vector<int> vec, int element)
 {
 	for (int i = 0; i < vec.size(); i++)
 	{
 		if (vec[i] == element)
-			return 1;
+			return true;
 	}
-	return 0;
+	return false;
 }
+
+bool is_suitable_and_do_not_exist(bool existence_checker, bool unsuitable_checker)
+{
+	if (existence_checker == 0 && unsuitable_checker == 0)
+		return true;
+	else
+		return false;
+}
+
+bool is_this_openning_time_nearest_time(vector<Locations> input, int index, int nearest_time)
+{
+	if (input[index].opening_time == nearest_time)
+		return true;
+	else
+		return false;
+}
+
+void make_change_suitable_indexes(vector<Locations> input, int index, vector<int> location_check, vector<int> &suitable_indexs,
+						  vector<int> unsuitable_indexs)
+{
+	bool existence_checker = did_find_int(location_check, (input[index].number - 1));
+	bool unsuitable_checker = did_find_int(unsuitable_indexs, index);
+	if (is_suitable_and_do_not_exist(existence_checker, unsuitable_checker))
+		suitable_indexs.push_back(index);
+}
+
 void find_suitable_indexs(vector<Locations> input, int nearest_time, vector<int> location_check, vector<int> &suitable_indexs,
 						  vector<int> unsuitable_indexs)
 {
@@ -188,12 +214,9 @@ void find_suitable_indexs(vector<Locations> input, int nearest_time, vector<int>
 	int size = input.size();
 	for (int i = 0; i < size; i++)
 	{
-		if (input[i].opening_time == nearest_time)
+		if (is_this_openning_time_nearest_time(input, i, nearest_time))
 		{
-			int existence_checker = find_int(location_check, (input[i].number - 1));
-			int unsuitable_checker = find_int(unsuitable_indexs, i);
-			if (existence_checker == 0 && unsuitable_checker == 0)
-				suitable_indexs.push_back(i);
+			make_change_suitable_indexes(input,i,location_check,suitable_indexs,unsuitable_indexs);
 		}
 	}
 }
@@ -240,10 +263,10 @@ vector<int> find_open_locs(vector<int> open_times, int current_time, vector<int>
 	vector<int> suitable_indexs;
 	for (int i = 0; i < open_times.size(); i++)
 	{
-		int existence_checker = find_int(location_check, i);
+		int existence_checker = did_find_int(location_check, i);
 		if (open_times[i] <= current_time && existence_checker == 0)
 		{
-			int unsuitable_check = find_int(unsuitable_indexs, i);
+			int unsuitable_check = did_find_int(unsuitable_indexs, i);
 			if (unsuitable_check == 0)
 				suitable_indexs.push_back(i);
 		}
