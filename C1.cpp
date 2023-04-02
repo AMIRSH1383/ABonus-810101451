@@ -386,19 +386,23 @@ string convert_int_to_clock_form(int time)
 	return calculate_correct_clock_form(hour,minute,hour_str,minute_str);
 }
 
-vector<vector<string>> make_vector_ready_for_print(vector<Locations> input, vector<int> close_times, vector<int> &location_check,
-												   vector<int> &start, vector<int> &durations)
+void make_changes_for_final_plan(vector<vector<string>>& final_plan,int index,vector<Locations> input,vector<int> start,vector<int> location_check,vector<int> durations)
+{
+	int end = calculate_endtime(start[index], durations[index]);
+	string standard_start = convert_int_to_clock_form(start[index]);
+	string standard_end = convert_int_to_clock_form(end);
+	vector<string> plan_data = {input[location_check[index]].name, standard_start, standard_end};
+	final_plan.push_back(plan_data);
+}
+
+vector<vector<string>> make_vector_ready_for_print(vector<Locations> input, vector<int> location_check,vector<int> start, vector<int> durations)
 {
 	// in this function we are gonna make the
 	// vector ready for print
 	vector<vector<string>> final_plan;
 	for (int i = 0; i < location_check.size(); i++)
 	{
-		int end = calculate_endtime(start[i], durations[i]);
-		string standard_start = convert_int_to_clock_form(start[i]);
-		string standard_end = convert_int_to_clock_form(end);
-		vector<string> plan_data = {input[location_check[i]].name, standard_start, standard_end};
-		final_plan.push_back(plan_data);
+		make_changes_for_final_plan(final_plan,i,input,start,location_check,durations);
 	}
 	return final_plan;
 }
@@ -436,6 +440,6 @@ int main(int argc, char *argv[])
 	vector<int> close_times;
 	vector<Locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE,open_times,close_times);
 	find_next_destination(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations,open_times,close_times);
-	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data, close_times, gone_location, start_times, durations);
+	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data,gone_location, start_times, durations);
 	print_output(ready_to_print);
 }
