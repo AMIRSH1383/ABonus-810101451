@@ -17,6 +17,9 @@ using namespace std;
 #define TRANSPORTATION_DURATION 30
 #define MINUTES_PER_HOURS 60
 #define FALSE -1
+#define TIME_DELIMETER ':'
+#define ENTRY_DELIMETER ','
+#define PLANS_DELIMETER "---"
 
 vector<int> open_times;
 vector<int> close_times;
@@ -43,7 +46,7 @@ vector<string> split_first_line(string first_line)
 	vector<string> titles;
 	string token;
 	stringstream S(first_line);
-	while (getline(S, token, ','))
+	while (getline(S, token, ENTRY_DELIMETER))
 		titles.push_back(token);
 	return titles;
 }
@@ -90,7 +93,7 @@ vector<vector<string>> split_input(vector<string> input_strings)
 	for (int i = 0; i < location_number; i++)
 	{
 		stringstream location_data(input_strings[i]);
-		while (getline(location_data, token, ','))
+		while (getline(location_data, token, ENTRY_DELIMETER))
 		{
 			temp_vec.push_back(token);
 		}
@@ -109,7 +112,7 @@ vector<int> create_time_vector(vector<vector<string>> input_table, int time_inde
 	for (int i = 0; i < location_number; i++)
 	{
 		stringstream S(input_table[i][time_index]);
-		while (getline(S, token, ':'))
+		while (getline(S, token, TIME_DELIMETER))
 		{
 			stringstream ss(token);
 			int temp_clock = 0;
@@ -361,13 +364,13 @@ string convert_int_to_clock_form(int time)
 	sss << min;
 	string min_str = sss.str();
 	if (hour < 10 && min < 10)
-		return "0" + hour_str + ":" + "0" + min_str;
+		return "0" + hour_str + TIME_DELIMETER + "0" + min_str;
 	else if (hour < 10 && min >= 10)
-		return "0" + hour_str + ":" + min_str;
+		return "0" + hour_str + TIME_DELIMETER + min_str;
 	else if (hour >= 10 && min < 10)
-		return hour_str + ":" + "0" + min_str;
+		return hour_str + TIME_DELIMETER + "0" + min_str;
 	else
-		return hour_str + ":" + min_str;
+		return hour_str + TIME_DELIMETER + min_str;
 }
 
 vector<vector<string>> make_vector_ready_for_print(vector<locations> input, vector<int> close_times, vector<int> &location_check, vector<int> &start, vector<int> &durations)
@@ -392,7 +395,7 @@ void print_output(vector<vector<string>> temp_vector)
 	{
 		cout << "Location " << temp_vector[i][0] << endl
 			 << "Visit from " << temp_vector[i][START_TIME_INDEX] << " until " << temp_vector[i][END_TIME_INDEX] << endl
-			 << "---" << endl;
+			 << PLANS_DELIMETER << endl;
 	}
 }
 
