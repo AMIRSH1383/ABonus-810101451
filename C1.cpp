@@ -21,9 +21,6 @@ using namespace std;
 #define ENTRY_DELIMETER ','
 #define PLANS_DELIMETER "---"
 
-vector<int> open_times;
-vector<int> close_times;
-
 struct locations
 {
 	int number;
@@ -126,13 +123,15 @@ vector<int> create_time_vector(vector<vector<string>> input_table, int time_inde
 	return times;
 }
 
-vector<locations> put_input_to_struct(vector<vector<string>> input_table, vector<int> open_times, vector<int> close_times, vector<int> title_arrangment)
+vector<locations> put_input_to_struct(vector<vector<string>> input_table, vector<int> open_times, vector<int> close_times,
+ vector<int> title_arrangment)
 {
 	vector<locations> input_structs;
 	int string_num = input_table.size();
 	for (int i = 0; i < string_num; i++)
 	{
-		input_structs.push_back({i + 1, input_table[i][title_arrangment[LOCATION_NAME_INDEX]], open_times[i], close_times[i], stoi(input_table[i][title_arrangment[RANK_INDEX]])});
+		input_structs.push_back({i + 1, input_table[i][title_arrangment[LOCATION_NAME_INDEX]], open_times[i], close_times[i],
+								 stoi(input_table[i][title_arrangment[RANK_INDEX]])});
 	}
 	return input_structs;
 }
@@ -165,7 +164,8 @@ int find_int(vector<int> vec, int element)
 	}
 	return 0;
 }
-void find_suitable_indexs(vector<locations> input, int nearest_time, vector<int> location_check, vector<int> &suitable_indexs, vector<int> unsuitable_indexs)
+void find_suitable_indexs(vector<locations> input, int nearest_time, vector<int> location_check, vector<int> &suitable_indexs,
+						  vector<int> unsuitable_indexs)
 {
 	// we find the next suitable indexes and put them in suitable
 	// indexes, since we change the vector we pass it with & (i.e. pass by reference) so the changes will apply to the original
@@ -249,7 +249,8 @@ int find_nearest(int current_time, vector<int> opentimes)
 	return min;
 }
 
-int find_next_destination_index(int &current_time, vector<int> open_times, vector<locations> input, vector<int> location_check, vector<int> unsuitable_indexs)
+int find_next_destination_index(int &current_time, vector<int> open_times, vector<locations> input, vector<int> location_check,
+								vector<int> unsuitable_indexs)
 {
 	vector<int> suitable_indexs;
 	int rank, index;
@@ -321,26 +322,28 @@ int check_existence(vector<int> location_check, int index)
 	return -1;
 }
 
-void make_changes(int &current_time,int duration_check,int index, vector<int> &location_check, vector<int> &start, vector<int> &durations)
+void make_changes(int &current_time, int duration_check, int index, vector<int> &location_check, vector<int> &start, vector<int> &durations)
 {
-		location_check.push_back(index);
-		start.push_back(current_time);
-		durations.push_back(duration_check);
-		current_time = calculate(current_time, duration_check);
+	location_check.push_back(index);
+	start.push_back(current_time);
+	durations.push_back(duration_check);
+	current_time = calculate(current_time, duration_check);
 }
 
-void test_destinations(int &current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,vector<int> &not_suitables)
+void test_destinations(int &current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,
+					   vector<int> &not_suitables,vector<int> open_times)
 {
 	int index = find_next_destination_index(current_time, open_times, input, location_check, not_suitables);
 	int existence_checker = check_existence(location_check, index);
 	int duration_check = check_destination_wellness(input, current_time, index);
 	if (existence_checker == FALSE && duration_check != FALSE)
-		make_changes(current_time,duration_check,index,location_check,start,durations);
+		make_changes(current_time, duration_check, index, location_check, start, durations);
 	else
 		not_suitables.push_back(index);
 }
 
-void find_next_destination(int current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations)
+void find_next_destination(int current_time, vector<locations> input, vector<int> &location_check, vector<int> &start, vector<int> &durations,
+vector<int> open_times,vector<int> close_times)
 {
 	// TODO: fix this function
 	int size = input.size();
@@ -348,7 +351,7 @@ void find_next_destination(int current_time, vector<locations> input, vector<int
 	int counter = 0;
 	while (current_time < find_max(close_times) && counter < size)
 	{
-		test_destinations(current_time,input,location_check,start,durations,not_suitables);
+		test_destinations(current_time, input, location_check, start, durations, not_suitables,open_times);
 		counter += 1;
 	}
 }
@@ -373,7 +376,8 @@ string convert_int_to_clock_form(int time)
 		return hour_str + TIME_DELIMETER + min_str;
 }
 
-vector<vector<string>> make_vector_ready_for_print(vector<locations> input, vector<int> close_times, vector<int> &location_check, vector<int> &start, vector<int> &durations)
+vector<vector<string>> make_vector_ready_for_print(vector<locations> input, vector<int> close_times, vector<int> &location_check,
+												   vector<int> &start, vector<int> &durations)
 {
 	// in this function we are gonna make the
 	// vector ready for print
@@ -399,11 +403,11 @@ void print_output(vector<vector<string>> temp_vector)
 	}
 }
 
-vector<locations> read_from_file(string file_name)
+vector<locations> read_from_file(string file_name,vector<int> &open_times,vector<int> &close_times)
 {
 	// this function reads input from a file
-	string first_line=get_first_line(file_name);
-	vector<string> splitted_first_line=split_first_line(first_line);
+	string first_line = get_first_line(file_name);
+	vector<string> splitted_first_line = split_first_line(first_line);
 	vector<int> arrangment = arrange(splitted_first_line);
 	vector<string> primitive_get = read_locs_data(file_name);
 	vector<vector<string>> splitted_input = split_input(primitive_get);
@@ -418,8 +422,10 @@ int main(int argc, char *argv[])
 	vector<int> gone_location;
 	vector<int> start_times;
 	vector<int> durations;
-	vector<locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE);
-	find_next_destination(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations);
+	vector<int> open_times;
+	vector<int> close_times;
+	vector<locations> location_data = read_from_file(argv[1] + FILE_NAME_WITHOUT_SLASH_AND_DOT_DISTANCE,open_times,close_times);
+	find_next_destination(START_TIME_IN_MINUTES, location_data, gone_location, start_times, durations,open_times,close_times);
 	vector<vector<string>> ready_to_print = make_vector_ready_for_print(location_data, close_times, gone_location, start_times, durations);
 	print_output(ready_to_print);
 }
