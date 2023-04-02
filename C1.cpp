@@ -105,24 +105,29 @@ vector<vector<string>> split_input(vector<string> input_strings)
 	return input_table;
 }
 
-vector<int> create_time_vector(vector<vector<string>> input_table, int time_index)
+int save_time_input(int time_index,int loop_index,vector<vector<string>> input_table)
 {
-	vector<int> times;
 	string token;
 	vector<int> temp;
+	stringstream string_time(input_table[loop_index][time_index]);
+	while (getline(string_time, token, TIME_DELIMETER))
+	{
+		stringstream string_minute_or_hour(token);
+		int temp_clock = 0;
+		string_minute_or_hour >> temp_clock;
+		temp.push_back(temp_clock);
+	}
+	int time = temp[HOUR_INDEX] * OPTIMUM_VISIT_TIME_DURATION + temp[MINUTE_INDEX];
+	return time;
+}
+
+vector<int> create_time(vector<vector<string>> input_table, int time_index)
+{
+	vector<int> times;
 	int location_number = input_table.size();
 	for (int i = 0; i < location_number; i++)
 	{
-		stringstream S(input_table[i][time_index]);
-		while (getline(S, token, TIME_DELIMETER))
-		{
-			stringstream ss(token);
-			int temp_clock = 0;
-			ss >> temp_clock;
-			temp.push_back(temp_clock);
-		}
-		int time = temp[HOUR_INDEX] * OPTIMUM_VISIT_TIME_DURATION + temp[MINUTE_INDEX];
-		temp.clear();
+		int time=save_time_input(time_index,i,input_table);
 		times.push_back(time);
 	}
 	return times;
@@ -142,7 +147,7 @@ vector<Locations> put_input_to_struct(vector<vector<string>> input_table, vector
 }
 int find_min(vector<int> vec);
 
-int find_min_tail(vector<int> vec,int length)
+int find_min_tail(vector<int> vec, int length)
 {
 	int tail = vec[length - 1];
 	vec.pop_back();
@@ -160,7 +165,7 @@ int find_min(vector<int> vec)
 	int length = vec.size();
 	if (length > 1)
 	{
-		return find_min_tail(vec,length);
+		return find_min_tail(vec, length);
 	}
 	else
 		return vec[0];
@@ -441,8 +446,8 @@ vector<Locations> read_from_file(string file_name, vector<int> &open_times, vect
 	vector<int> arrangment = arrange(splitted_first_line);
 	vector<string> primitive_get = read_locs_data(file_name);
 	vector<vector<string>> splitted_input = split_input(primitive_get);
-	open_times = create_time_vector(splitted_input, arrangment[START_TIME_INDEX]);
-	close_times = create_time_vector(splitted_input, arrangment[END_TIME_INDEX]);
+	open_times = create_time(splitted_input, arrangment[START_TIME_INDEX]);
+	close_times = create_time(splitted_input, arrangment[END_TIME_INDEX]);
 	vector<Locations> location_data = put_input_to_struct(splitted_input, open_times, close_times, arrangment);
 	return location_data;
 }
